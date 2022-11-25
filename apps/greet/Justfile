@@ -1,0 +1,6 @@
+####!/usr/bin/env just --working-directory . --justfile
+# vim: set ft=make :
+
+build:
+	wasm-pack build . --target web --out-name index
+
