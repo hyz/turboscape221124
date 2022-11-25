@@ -8,6 +8,7 @@ edition = "2021"
 [workspace]
 members = [
     "apps/greet",
+    "apps/baidu.com",
     "tauri-1.2.0",
     "tauri-egui",
     #"examples/egui_demo_app",
@@ -88,7 +89,7 @@ features = ["rt", "rt-multi-thread", "sync", "fs", "io-util", "time"]
 
 # https://doc.rust-lang.org/cargo/reference/profiles.html
 [profile.release]
-#opt-level = 1
+opt-level = 1
 #overflow-checks = false
 
 
