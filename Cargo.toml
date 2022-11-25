@@ -13,7 +13,14 @@ members = [
     #"examples/egui_demo_app",
     #"examples/egui_demo_lib",
 ]
-exclude = ["node_modules", "dist", "target", "third-party", "sharedata", "zipold"]
+exclude = [
+    "node_modules",
+    "dist",
+    "target",
+    "third-party",
+    "zipold",
+    "experiment*",
+]
 
 
 [features]

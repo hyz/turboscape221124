@@ -16,7 +16,6 @@
   "dependencies": {
   },
   "devDependencies": {
-    "tauri-apps-api-dist": "*",
     "tauri-apps-api": "*",
     "tsconfig": "*",
     "eslint-config-custom-server": "*",

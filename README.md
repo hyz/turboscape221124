@@ -36,5 +36,8 @@ yarn install
 git init . && git add . && git commit -m "Init"
 ```
 
+```sh
+wasm-pack build . --target web --out-name index
+```
 
     dbg!("init_webview add_script_to_execute_on_document_created initialization_scripts ___");

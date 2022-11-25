@@ -5,21 +5,21 @@ use serialize_to_javascript::{default_template, DefaultTemplate, Template};
 use tauri::Assets;
 
 #[derive(Template)]
-#[default_template("./src/scripts/wasm-bootstrap.js")]
+#[default_template("scripts/wasm-bootstrap.js")]
 pub(crate) struct WasmBootstrap {
     pub host: String,
     pub uuid: String,
 }
 
 #[derive(Template)]
-#[default_template("./src/scripts/search.baidu.com.js")]
+#[default_template("scripts/search.baidu.com.js")]
 pub(crate) struct SearchBaidu {
     pub hash_index: String,
     pub uuid: String,
 }
 
 #[derive(Template)]
-#[default_template("./src/scripts/search.qcc.com.js")]
+#[default_template("scripts/search.qcc.com.js")]
 pub(crate) struct SearchQcc {
     pub numb: i32,
     pub keyword: String,
@@ -28,11 +28,11 @@ pub(crate) struct SearchQcc {
 }
 
 #[derive(Template)]
-#[default_template("./src/scripts/page-on-load.js")]
+#[default_template("scripts/page-on-load.js")]
 pub(crate) struct PageOnLoad;
 
 #[derive(Template)]
-#[default_template("./src/scripts/dist/ajaxhook.min.js")]
+#[default_template("../third-party/dist/ajaxhook.min.js")]
 pub(crate) struct AjaxHook;
 //{ pub(crate) isolation_origin: &'a str,}
 
