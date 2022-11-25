@@ -1,0 +1,14 @@
+{
+	"extends": "tsconfig/react-library.json",
+	"include": [".", "./tauri-apps/dist"],
+	"exclude": ["node_modules", "target", "dist", "pkg"],
+
+	"compilerOptions": {
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"isolatedModules": false,
+		"paths": {
+			"*": ["./src/*"],
+			"@tauri-apps/api/*": ["./src/tauri-apps/*"]
+		}
+	}
+}

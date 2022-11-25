@@ -1,0 +1,96 @@
+{
+	"$schema": "./core/config-schema/schema.json",
+	"build": {
+		"distDir": "public/",
+		"devPath": "public/",
+		"beforeDevCommand": "",
+		"beforeBuildCommand": "",
+		"withGlobalTauri": true
+	},
+	"package": {
+		"productName": "Navigation",
+		"version": "0.1.0"
+	},
+	"tauri": {
+		"bundle": {
+			"active": false,
+			"targets": "all",
+			"identifier": "localhost.tauri",
+			"icon": [
+				"./public/icons/32x32.png",
+				"./public/icons/128x128.png",
+				"./public/icons/icon.ico"
+			],
+			"resources": [],
+			"externalBin": [],
+			"copyright": "",
+			"category": "DeveloperTool",
+			"shortDescription": "",
+			"longDescription": "",
+			"deb": {
+				"depends": []
+			},
+			"macOS": {
+				"frameworks": [],
+				"exceptionDomain": ""
+			}
+		},
+		"allowlist": {
+			"all": true,
+			"protocol": {
+				"asset": true,
+				"assetScope": {
+					"allow": [ "assets/**", "dist/**", "$RESOURCE/**" ],
+					"deny": [ "$APPDATA/db/*.stronghold" ]
+				}
+			},
+			"window": {
+				"create": true
+			},
+			"shell": {
+				"execute": true,
+				"open": true
+			},
+			"fs": {
+				"all": true,
+				"scope": {
+					"allow": ["**"],
+					"deny": ["$APPDATA/db/*.stronghold"]
+				  }
+			},
+			"http": { "all":true, "request": true, "scope": ["https://**/**", "http://**", "asset://**", "tauri://**"] },
+			"app": { "all":true },
+			"path": { "all":true}
+		},
+		"windows": [
+			{
+				"title": "Welcome to Tauri!",
+				"width": 1024,
+				"height": 1280,
+				"resizable": true,
+				"fullscreen": false
+			}
+		],
+		"security": {
+			"csp": {
+				"default-src": "'self' 'unsafe-eval' 'unsafe-inline' customprotocol: bat: tauri: data: asset: blob: ws: wss: http: https:  https://asset.localhost",
+				"script-src": "http: https: asset: tauri: blob: data: 'self' 'unsafe-eval' 'unsafe-inline'",
+				"img-src": "'self' asset: http: https: blob: data: https://asset.localhost",
+				"style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
+				"media-src": "bat: https://bat.localhost asset: https://asset.localhost",
+				"font-src": [
+					"https://fonts.gstatic.com"
+				]
+			},
+			"freezePrototype": false
+		},
+		"systemTray": {
+			"iconPath": "./public/icons/icon.ico",
+			"iconAsTemplate": true,
+			"menuOnLeftClick": false
+		},
+		"updater": {
+			"active": false
+		}
+	}
+}
