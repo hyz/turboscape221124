@@ -16,13 +16,14 @@ cfg_if! {
     }
 }
 
-// #[wasm_bindgen]
-// extern "C" {
-//     fn alert(s: &str);
-// }
+#[wasm_bindgen]
+extern "C" {
+    fn alert(s: &str);
+}
 
 #[wasm_bindgen]
 pub fn greet(name: &str) {
-    // ::greet::greet(name);
-    // alert(&format!("Hello,{}!", name));
+    let win = web_sys::window().unwrap();
+    _ = dbg!(win.alert_with_message(&format!("Greet,{}", name)));
+    _ = dbg!(alert(&format!("Greet,{}", name)));
 }

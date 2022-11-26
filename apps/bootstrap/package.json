@@ -1,0 +1,32 @@
+{
+  "name": "bootstrap",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node esbuild-script.mjs",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "dev": "tsup src/index.ts --format cjs --watch --onSuccess \"node dist/index.js\"",
+    "lint": "tsc --noEmit && TIMING=1 eslint \"src/**/*.ts*\"",
+    "start": "node dist/index.js",
+    "test": "jest --detectOpenHandles"
+  },
+  "jest": {
+    "preset": "jest-presets/jest/node"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.2.3",
+    "@types/node": "^18.11.9",
+    "@types/supertest": "^2.0.12",
+    "esbuild": "^0.15.15",
+    "eslint": "^8.28.0",
+    "eslint-config-custom": "workspace:*",
+    "eslint-config-custom-server": "*",
+    "jest": "^29.3.1",
+    "jest-presets": "*",
+    "supertest": "^6.3.1",
+    "tauri-apps-api": "*",
+    "tsconfig": "*",
+    "typescript": "^4.8.2"
+  }
+}
