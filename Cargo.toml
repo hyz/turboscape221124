@@ -8,6 +8,7 @@ edition = "2021"
 [workspace]
 members = [
     "apps/greet",
+    "apps/samples",
     "apps/baidu.com",
     "tauri-1.2.0",
     "tauri-egui",

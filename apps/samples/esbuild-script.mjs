@@ -1,23 +1,24 @@
 import { existsSync, mkdirSync, copyFile, readFile } from "fs";
-import { build as esbuild } from "esbuild";
+import { build } from "esbuild";
+import path from "path";
 // https://esbuild.github.io/plugins/#webassembly-plugin
 
 existsSync("./dist/") || mkdirSync("./dist/");
 
-esbuild({
+build({
 	plugins: [],
 	loader: { ".wasm": "copy" },
 	entryNames: "[name]",
-	entryPoints: ["./src/index.ts"],
+	entryPoints: ["./src/index.ts", "./pkg/index_bg.wasm"],
 	outdir: "./dist",
 	target: ["es2017"],
-	format: "cjs",
-	minify: true,
+	format: "esm",
+	minify: false,
 	bundle: true,
 	splitting: false,
 	sourcemap: "external",
 	treeShaking: true,
-	logLevel: "debug",
+	logLevel: "info",
 	mainFields: ["browser", "module", "main"],
 })
 	.then(() => {

@@ -423,6 +423,7 @@ pub fn on_page_load(_: &str, window: &tauri::Window) {
 #[tauri::command]
 pub fn greet(name: &str) -> serde_json::Value {
     //await __TAURI__.tauri.invoke('greet', {name:"joe"})
+    _ = dbg!(format!("greet: {name}"));
     serde_json::json!({"greet":"Greet! You've been greeted from Rust!","name":name})
 }
 

@@ -1,0 +1,12 @@
+{
+	"extends": "tsconfig/react-app.json",
+	"exclude": ["node_modules", "target", "dist"],
+	"include": ["src"],
+	"compilerOptions": {
+		"paths": {
+			"*": ["./src/*"],
+			"~/*": ["./*"],
+			"@___tauri-apps/api/*": ["./src/tauri-apps/dist/*"]
+		}
+	}
+}

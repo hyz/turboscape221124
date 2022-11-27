@@ -1,9 +1,9 @@
 {
-  "name": "greet",
+  "name": "loadwa",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "wasm-pack build . --target web --out-name index && node esbuild-script.mjs",
+    "___:build": "wasm-pack build . --target web --out-name index && node esbuild-script.mjs",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "dev": "tsup src/index.ts --format cjs --watch --onSuccess \"node dist/index.js\"",
     "lint": "tsc --noEmit && TIMING=1 eslint \"src/**/*.ts*\"",
