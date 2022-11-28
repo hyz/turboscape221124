@@ -134,3 +134,99 @@ pub fn video_uri() -> (&'static str, std::path::PathBuf) {
 //     assert!(status.status.success());
 //     assert!(video_file.exists());
 // }
+
+fn pack(
+    origin: &str,
+    method: &str,
+    url: &str,
+    body: Option<&str>,
+    status: i32,
+    content: &str,
+    ctype: &str, // clength: ...,
+    headers: Vec<serde_json::Value>, //[Vec<Object>],
+                 // window: Window,
+                 // paging: tauri::State<'_, Database>,
+) -> Vec<u8> {
+    let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+
+    // Serialize some weapons for the Monster: A 'sword' and an 'axe'.
+    let weapon_one_name = builder.create_string("Sword");
+    let weapon_two_name = builder.create_string("Axe");
+
+    // Use the `Weapon::create` shortcut to create Weapons with named field
+    // arguments.
+    let sword = Weapon::create(
+        &mut builder,
+        &WeaponArgs {
+            name: Some(weapon_one_name),
+            damage: 3,
+        },
+    );
+    let axe = Weapon::create(
+        &mut builder,
+        &WeaponArgs {
+            name: Some(weapon_two_name),
+            damage: 5,
+        },
+    );
+
+    // Name of the Monster.
+    let name = builder.create_string("Orc");
+
+    // Inventory.
+    let inventory = builder.create_vector(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    // Create a FlatBuffer `vector` that contains offsets to the sword and axe
+    // we created above.
+    let weapons = builder.create_vector(&[sword, axe]);
+
+    // Create the path vector of Vec3 objects:
+    //let x = Vec3::new(1.0, 2.0, 3.0);
+    //let y = Vec3::new(4.0, 5.0, 6.0);
+    //let path = builder.create_vector(&[x, y]);
+
+    // Note that, for convenience, it is also valid to create a vector of
+    // references to structs, like this:
+    // let path = builder.create_vector(&[&x, &y]);
+
+    // Create the monster using the `Monster::create` helper function. This
+    // function accepts a `MonsterArgs` struct, which supplies all of the data
+    // needed to build a `Monster`. To supply empty/default fields, just use the
+    // Rust built-in `Default::default()` function, as demonstrated below.
+    let orc = Monster::create(
+        &mut builder,
+        &MonsterArgs {
+            pos: Some(&Vec3::new(1.0f32, 2.0f32, 3.0f32)),
+            mana: 150,
+            hp: 80,
+            name: Some(name),
+            inventory: Some(inventory),
+            color: Color::Red,
+            weapons: Some(weapons),
+            equipped_type: Equipment::Weapon,
+            equipped: Some(axe.as_union_value()),
+            //path: Some(path),
+            ..Default::default()
+        },
+    );
+
+    // Serialize the root of the object, without providing a file identifier.
+    builder.finish(orc, None);
+
+    // We now have a FlatBuffer we can store on disk or send over a network.
+
+    // ** file/network code goes here :) **
+
+    // Instead, we're going to access it right away (as if we just received it).
+    // This must be called after `finish()`.
+    let buf_1 = builder.finished_data(); // Of type `&[u8]`
+
+    // decode(buf_1);
+    let mon1 = flatbuffers::root::<Monster>(buf_1).unwrap();
+    check(mon1);
+    let mon2 = flatbuffers::root::<Monster>(bytes).unwrap();
+    check(mon2);
+    // !! assert_eq!(mon1, mon2);
+    console_dbg!("--------==========----------");
+    return buf_1.into();
+}

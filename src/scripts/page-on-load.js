@@ -48,7 +48,9 @@
 			return { origin, method, url, body, status, content: response, ctype, length, headers: [req, rsp] };
 		})(simplify(r0));
 		console.log("___cons_", document.location.href, r0); //,r0
-		invoke("consume", props).then(() => console.log);
+		invoke("consume", props).then(([jf, bytes]) => {
+			console.log("consumed___", jf, bytes.length, eval(jf)(bytes));
+		});
 		handler.next(r0);
 	};
 	window.__page_ = { explored: [] };

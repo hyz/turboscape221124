@@ -10,6 +10,7 @@ members = [
     "apps/greet",
     "apps/samples",
     "apps/baidu.com",
+    "apps/flatbuffers",
     "tauri-1.2.0",
     "tauri-egui",
     #"examples/egui_demo_app",
@@ -39,6 +40,9 @@ percent-encoding = "2"
 serde = "1"
 serde_json = "1"
 serialize-to-javascript = "=0.1" # tauri/Cargo.toml
+
+bitflags = "1"
+flatbuffers = "22.10"
 
 #tauri-macros = { version = "1.1" }
 #tauri-runtime = { path = "./tauri-runtime-0.11.1" }

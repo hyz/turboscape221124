@@ -12,6 +12,7 @@ use std::{
     io::{self, Write},
     path::{Path, PathBuf},
 };
+use tauri::http::method::Method;
 use tauri::http::MimeType;
 use tauri::window;
 
@@ -143,15 +144,16 @@ pub fn consume(
     headers: Vec<serde_json::Value>, //[Vec<Object>],
     window: Window,
     paging: tauri::State<'_, Database>,
-) -> serde_json::Value {
+) -> (String, Vec<u8>) {
     //invoke('consume', { url: config.url, status, response }).then(console.log);
     //await __TAURI__.tauri.invoke('consume',{response:'hello world',url:'/path/to',status:200})
     //JSON.parse(temp1.response, (k, v) => { if (typeof v === 'string') return v.replace('<em>', '').replace('</em>', ''); return v })
+    assert!(headers.len() == 2);
     if !true || url.len() < 1 || ctype.len() < 1 || content.len() < 10 || status != 200 {
-        return json!({"err":-1,"hint":"invalid args"});
+        return (String::new(), vec![]); //json!({"err":-1,"hint":"invalid args"});
     }
     // let headers = headers.as_array().expect("headers:[]");
-    assert!(headers.len() == 2);
+
     let url_arg = url;
     let url = if url.starts_with("/") {
         let b = Url::parse(origin).ok();
@@ -318,7 +320,7 @@ pub fn consume(
         }
     }
 
-    return json!({"code":0,"hint":"invalid args"});
+    return (String::new(), vec![]); //json!({"code":0,"hint":"invalid args"});
 }
 
 #[tauri::command]
@@ -421,10 +423,11 @@ pub fn on_page_load(_: &str, window: &tauri::Window) {
 }
 
 #[tauri::command]
-pub fn greet(name: &str) -> serde_json::Value {
+pub fn greet(name: &str) -> (String, Vec<u8>) {
     //await __TAURI__.tauri.invoke('greet', {name:"joe"})
     _ = dbg!(format!("greet: {name}"));
-    serde_json::json!({"greet":"Greet! You've been greeted from Rust!","name":name})
+    // serde_json::json!({"greet":"Greet! You've been greeted from Rust!","name":name})
+    return (r#"console.log"#.into(), "nice, greet".into());
 }
 
 #[derive(Debug, Serialize)]
