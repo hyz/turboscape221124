@@ -5,6 +5,16 @@ use serialize_to_javascript::{default_template, DefaultTemplate, Template};
 use tauri::Assets;
 
 #[derive(Template)]
+#[default_template("scripts/forward.js")]
+pub(crate) struct Forward {
+    pub host: String,
+    pub uuid: String,
+    pub site_dir: String,
+    pub index: String,
+    pub index_bg: String,
+}
+
+#[derive(Template)]
 #[default_template("scripts/wasm-bootstrap.js")]
 pub(crate) struct WasmBootstrap {
     pub host: String,

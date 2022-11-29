@@ -187,6 +187,7 @@ pub fn flatbuffers_examples(bytes: &[u8]) -> Vec<u8> {
 
 #[wasm_bindgen]
 pub fn collect(bytes: &[u8]) {
+    console_dbg!("--------=___  ___=----------", bytes.len());
     let q = flatbuffers::root::<Query>(bytes).unwrap();
 
     console_dbg!(q, "--------=___ collect ___=----------");

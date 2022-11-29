@@ -16,10 +16,22 @@ fs.readBinaryFile(`apps/${_name__}/dist/index_bg.wasm`)
 
 		greet("lucky day");
 
-		bytes = flatbuffers_exa(createMonstor());
-		console.log("------------------------------------------");
-		bytes = flatbuffers_examples(bytes);
-		flatbuffers_exa(bytes);
+		console.log("--------------- monster created by ts ----------------------");
+		let bytes_ts = flatbuffers_exa(createMonstor());
+
+		console.log("--------------- monster created by wasm ----------------------");
+		let bytes_wasm = flatbuffers_examples(bytes_ts);
+		flatbuffers_exa(bytes_wasm);
+
+		tauri
+			.invoke("monster", { bytes: bytes_wasm })
+			.then(async ([js, bytes]: any) => {
+				console.log(js, bytes);
+				console.log("--------------- monster created by rust ----------------------");
+				// !!! flatbuffers_exa(bytes); //TypeError: this.bytes_.subarray is not a function
+				flatbuffers_examples(bytes);
+			})
+			.catch(console.error);
 	})
 	.catch(console.error);
 

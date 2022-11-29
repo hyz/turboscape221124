@@ -1,0 +1,30 @@
+namespace query;
+
+enum Method:byte { Method_=0, Get = 1, Head, Post, Put, Delete }
+
+table Pair {
+  key:string;
+  value:string;
+}
+
+table Request {
+  method: Method;
+  url:string;
+  body:[ubyte];
+  headers:[Pair];
+}
+
+table Response {
+  status:short;
+  content:[ubyte];
+  contenttype:string;
+  headers:[Pair];
+}
+
+table Query {
+  context:[Pair];
+  request: Request;
+  response: Response;
+}
+
+root_type Query;

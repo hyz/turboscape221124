@@ -11,6 +11,7 @@ members = [
     "apps/samples",
     "apps/baidu.com",
     "apps/flatbuffers",
+    "packages/flatcollect",
     "tauri-1.2.0",
     "tauri-egui",
     #"examples/egui_demo_app",

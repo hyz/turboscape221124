@@ -1,5 +1,5 @@
 (function () {
-	let simplify = (obj0) => {
+	let slims = (obj0) => {
 		let found = [obj0];
 		let traverse = (cpy, children, obj) => {
 			const names = Object.keys(obj); //getOwnPropertyNames
@@ -46,10 +46,10 @@
 			})(headers);
 			let origin = document.location.href;
 			return { origin, method, url, body, status, content: response, ctype, length, headers: [req, rsp] };
-		})(simplify(r0));
-		console.log("___cons_", document.location.href, r0); //,r0
-		invoke("consume", props).then(([jf, bytes]) => {
-			console.log("consumed___", jf, bytes.length, eval(jf)(bytes));
+		})(slims(r0));
+		console.log("___slimed_", document.location.href, r0); //,r0
+		invoke("sample", props).then(([jf, bytes]) => {
+			console.log("sample,collect ___", jf, bytes.length, eval(jf)(bytes));
 		});
 		handler.next(r0);
 	};

@@ -17,7 +17,8 @@ use tauri::{Manager, State};
 
 mod commands;
 mod menu;
-mod protocol;
+mod monster_generated;
+mod protocols;
 mod template;
 
 #[derive(Default)]
@@ -31,14 +32,15 @@ pub fn build() -> std::result::Result<tauri::App, tauri::Error> {
         //.manage(Connection(Default::default()))
         .manage(Database(Default::default()))
         .invoke_handler(tauri::generate_handler![
-            commands::consume,
+            commands::sample,
             commands::numb_exists,
             commands::greet,
+            commands::monster,
             commands::ask,
             commands::help,
-            protocol::video_uri
+            protocols::video_uri
         ])
-        .register_uri_scheme_protocol("bat", protocol::bat_protocol)
+        .register_uri_scheme_protocol("bat", protocols::bat_protocol)
         .on_page_load(move |window, payload| {
             _ = commands::on_page_load(payload.url(), &window);
 
