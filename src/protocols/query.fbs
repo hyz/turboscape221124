@@ -34,4 +34,10 @@ table Query {
   response: Response;
 }
 
+table Evals {
+  script:string;
+  input:[ubyte];
+}
+
 root_type Query;
+

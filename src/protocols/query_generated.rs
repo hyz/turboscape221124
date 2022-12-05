@@ -808,6 +808,120 @@ impl core::fmt::Debug for Query<'_> {
       ds.finish()
   }
 }
+pub enum EvalsOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct Evals<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for Evals<'a> {
+  type Inner = Evals<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> Evals<'a> {
+  pub const VT_SCRIPT: flatbuffers::VOffsetT = 4;
+  pub const VT_INPUT: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Evals { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args EvalsArgs<'args>
+  ) -> flatbuffers::WIPOffset<Evals<'bldr>> {
+    let mut builder = EvalsBuilder::new(_fbb);
+    if let Some(x) = args.input { builder.add_input(x); }
+    if let Some(x) = args.script { builder.add_script(x); }
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn script(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Evals::VT_SCRIPT, None)}
+  }
+  #[inline]
+  pub fn input(&self) -> Option<flatbuffers::Vector<'a, u8>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Evals::VT_INPUT, None)}
+  }
+}
+
+impl flatbuffers::Verifiable for Evals<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("script", Self::VT_SCRIPT, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("input", Self::VT_INPUT, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct EvalsArgs<'a> {
+    pub script: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub input: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+}
+impl<'a> Default for EvalsArgs<'a> {
+  #[inline]
+  fn default() -> Self {
+    EvalsArgs {
+      script: None,
+      input: None,
+    }
+  }
+}
+
+pub struct EvalsBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> EvalsBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_script(&mut self, script: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Evals::VT_SCRIPT, script);
+  }
+  #[inline]
+  pub fn add_input(&mut self, input: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Evals::VT_INPUT, input);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> EvalsBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    EvalsBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<Evals<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for Evals<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("Evals");
+      ds.field("script", &self.script());
+      ds.field("input", &self.input());
+      ds.finish()
+  }
+}
 #[inline]
 /// Verifies that a buffer of bytes contains a `Query`
 /// and returns it.
