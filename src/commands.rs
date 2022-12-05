@@ -415,7 +415,7 @@ pub fn sample(
         builder.collapse() // builder.finished_data()
     };
 
-    tauri::async_runtime::spawn({
+    let resp = tauri::async_runtime::block_on({
         let bytes = bytes[head..].to_vec();
         async move {
             let url_analyzer = "http:/u8080.de/v1/an";
@@ -433,43 +433,51 @@ pub fn sample(
                 Ok(res) => res.bytes().await,
                 Err(err) => {
                     dbg!((err, url_analyzer,));
-                    return;
+                    return ("console.log".to_string(), vec![]);
                 }
             };
             // .and_then(async |rsp| );
             // .bytes() //.json::<>()
             // .await
             // .unwrap();
-
             println!("{:#?}", bytes);
+            if let Ok(bytes) = bytes {
+                let eva = flatbuffers::root::<query::Evals>(&bytes).unwrap();
+                dbg!(eva);
+                let js = eva.script().unwrap();
+                let arg = eva.input().unwrap();
+                return (js.into(), arg.bytes().to_vec());
+                // window.emit(event, payload)
+            }
+
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             // window.emit("jedi", Some(js)).expect("emit-jedi");
             dbg!("sample ___ emit-jedi");
+
+            return ("console.log".to_string(), vec![]);
         }
-    });
-
-    return ("console.log".to_string(), vec![]);
-
+    }); // return ("console.log".to_string(), vec![]);
+    return resp;
     // let query = flatbuffers::root::<query::Query>(bytes).unwrap();
     // dbg!(query);
 
     // let host = url.host_str().expect(url_arg).to_string();
     // let uuid = uuid::Uuid::new_v4().to_string();
     // let index = "packages/flatcollect/dist/index.js".into();
-    let js_script = scripts::Forward {
-        host,
-        uuid: uuid,
-        site_dir,
-        index: index_js,
-        index_bg,
-    }
-    .render_default(&Default::default())
-    .unwrap()
-    .into_string();
+    // let js_script = scripts::Forward {
+    //     host,
+    //     uuid: uuid,
+    //     site_dir,
+    //     index: index_js,
+    //     index_bg,
+    // }
+    // .render_default(&Default::default())
+    // .unwrap()
+    // .into_string();
     // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     // window.emit("jedi", Some(js)).expect("emit-jedi");
 
-    return (js_script, bytes.into());
+    // return (js_script, bytes.into());
     // return (String::new(), vec![]); //json!({"code":0,"hint":"invalid args"});
 }
 

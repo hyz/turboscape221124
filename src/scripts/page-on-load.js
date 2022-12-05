@@ -49,13 +49,13 @@
 			let origin = document.location.href;
 			return { origin, method, url, body, status, content: response, ctype, length, headers: [req, rsp] };
 		})(slims(r0));
-		console.log("___slimed_", document.location.href, r0); //,r0
 		invoke("sample", props).then(([jsf, bytes]) => {
 			if (jsf && jsf.length > 0) {
 				// if (uuid && uuid.length > 0) { window.__page_[uuid] = {}; }
-				console.log("sample,collect ___", jsf, bytes.length, eval(jsf)(bytes));
+				console.log("sample,___", jsf, bytes.length, eval(jsf)(bytes));
 			}
 		});
+		console.log("___slimed...", document.location.href, r0); //,r0
 		handler.next(r0);
 	};
 	// window.__mods_ = {
