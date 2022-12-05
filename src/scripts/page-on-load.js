@@ -29,6 +29,8 @@
 		}
 		return copy; //traverse(o);
 	};
+	window.__page_ = {};
+
 	let onResponse = (r0, handler) => {
 		let { invoke } = window.__TAURI__.tauri;
 		let props = (function ({ config, headers, response, status }) {
@@ -48,12 +50,14 @@
 			return { origin, method, url, body, status, content: response, ctype, length, headers: [req, rsp] };
 		})(slims(r0));
 		console.log("___slimed_", document.location.href, r0); //,r0
-		invoke("sample", props).then(([jf, bytes]) => {
-			console.log("sample,collect ___", jf, bytes.length, eval(jf)(bytes));
+		invoke("sample", props).then(([jsf, bytes]) => {
+			if (jsf && jsf.length > 0) {
+				// if (uuid && uuid.length > 0) { window.__page_[uuid] = {}; }
+				console.log("sample,collect ___", jsf, bytes.length, eval(jsf)(bytes));
+			}
 		});
 		handler.next(r0);
 	};
-	window.__page_ = { explored: [] };
 	// window.__mods_ = {
 	// 	require: async function (path) {
 	// 		let mod = window.__mods_[path];

@@ -127,7 +127,7 @@ pub fn menu_event_handler(event: WindowMenuEvent) {
             create_egui_window(app.state::<tauri_egui::EguiPluginHandle>()).unwrap();
         }
         "greet" => {
-            use crate::template::WasmBootstrap as Template;
+            use crate::scripts::WasmBootstrap as Template;
             let host = "www.greet".into();
             let uuid = uuid::Uuid::new_v4().to_string();
             _ = dbg!(eval_template(window, Template { host, uuid }));

@@ -26,12 +26,13 @@ use url::Url;
 #[path = "prettyformatter.rs"]
 mod prettyformatter;
 use crate::protocols::query_generated::query;
+use crate::protocols::query_generated::query::ContextArgs;
 use crate::protocols::query_generated::query::Pair;
 use crate::protocols::query_generated::query::PairArgs;
 use crate::protocols::query_generated::query::QueryArgs;
 use crate::protocols::query_generated::query::ResponseArgs;
 use crate::protocols::query_generated::{self, query::RequestArgs};
-use crate::{template, Database};
+use crate::{scripts, Database};
 
 // use rustpython_pylib as pylib;
 // use rustpython_stdlib as stdlib;
@@ -84,7 +85,7 @@ impl<T: Serialize> From<Option<T>> for Return<T, serde_json::Value> {
 }
 
 enum Scripts {
-    AjaxHook(template::AjaxHook),
+    AjaxHook(scripts::AjaxHook),
 }
 // #[derive(Deserialize)]
 // #[serde(untagged)] //#[serde(tag = "name")] //#[serde(tag = "t", content = "c")]
@@ -199,7 +200,7 @@ fn pack_response<'a>(
         &ResponseArgs {
             status: status as i16,
             content,
-            contenttype,
+            type_: contenttype,
             headers,
         },
     )
@@ -207,15 +208,15 @@ fn pack_response<'a>(
 
 #[tauri::command] //(rename_all = "snake_case")
 pub fn sample(
+    window: Window, //paging: tauri::State<'_, Database>,
     origin: &str,
     method: &str,
     url: &str,
     body: Option<&str>,
     status: i32,
     content: &str,
-    ctype: &str, // clength: ...,
+    ctype: &str,
     mut headers: Vec<serde_json::Value>,
-    // window: Window,paging: tauri::State<'_, Database>,
 ) -> (String, Vec<u8>) {
     assert!(headers.len() == 2);
 
@@ -229,14 +230,14 @@ pub fn sample(
 
     let url_arg = url;
     let url = if url.starts_with("/") {
-        let b = Url::parse(origin).ok();
-        Url::options().base_url(b.as_ref()).parse(url).expect(url)
+        let base = Url::parse(origin).ok();
+        let opt = Url::options().base_url(base.as_ref());
+        opt.parse(url_arg).expect(url_arg)
     } else {
-        Url::parse(url).expect(url)
+        Url::parse(url_arg).expect(url_arg)
     };
     let url_path = Path::new(url.path());
-    let hash_index = format!("{}{}", url.host_str().unwrap(), url.path());
-    let mime_type = if ctype.contains("application/json") {
+    let mime = if ctype.contains("application/json") {
         "application/json".into()
     } else {
         MimeType::parse(content.as_bytes(), url_arg)
@@ -246,16 +247,15 @@ pub fn sample(
     let content = content.trim_start();
     // let cont = &content[..256.min(content.len())]; //.get(..256).unwrap_or(content); //
     // let u_ = &url[..128.min(ulen)];
-    dbg!(format!(
-        "consume___{method}/{status} {mime_type} {hash_index} {clen}:..",
-    ));
+    let idkey = format!("{},{}", url.host_str().unwrap(), url.path());
+    dbg!(format!("___{method}/{status} {mime} {idkey} {clen}:.."));
 
     // let now = chrono::offset::Local::now();
     // let today = now.format("_%y%m%d___");
 
     let mut file_path = PathBuf::from("sites");
     if !file_path.exists() {
-        println!("`sites` not exists");
+        println!("`sites' directory not exists");
     }
 
     file_path.push(url.host_str().expect(url_arg));
@@ -269,6 +269,13 @@ pub fn sample(
             Some(d.to_string_lossy().to_string())
         })
         .unwrap();
+    let [headers_req, headers_rsp] = (move || -> [serde_json::Value; 2] {
+        // headers.as_slice()[..2] as [_; 2]; //headers.pop().unwrap();
+        let mut drain = headers.drain(..); //.take(2);
+        let hd1 = drain.next().unwrap();
+        let hd2 = drain.next().unwrap();
+        [hd1, hd2]
+    })();
 
     // file_path.set_file_name(file_name)
     file_path.set_extension("tmp");
@@ -284,13 +291,13 @@ pub fn sample(
             .and_then(|_| writeln!(file, ""))
             .and_then(|_| writeln!(file, "{method}"))
             .and_then(|_| writeln!(file, "{url_arg}"))
-            .and_then(|_| to_writer(&mut file, &headers[0]).map_err(map_err))
+            .and_then(|_| to_writer(&mut file, &headers_req).map_err(map_err))
             .and_then(|_| writeln!(file, ""))
             .and_then(|_| body.map(|body| writeln!(file, "{body}")).unwrap_or(Ok(())))
             .and_then(|_| writeln!(file, ""))
             .and_then(|_| writeln!(file, "{status}"))
             .and_then(|_| writeln!(file, "{ctype}"))
-            .and_then(|_| to_writer(&mut file, &headers[1]).map_err(map_err))
+            .and_then(|_| to_writer(&mut file, &headers_rsp).map_err(map_err))
             .and_then(|_| writeln!(file, ""))
             .and_then(|_| writeln!(file, "{}", content.len()))
             .and_then(|_| file.write_all(content.as_bytes()))
@@ -301,41 +308,54 @@ pub fn sample(
     }
     dbg!(format!("saved___ {}", file_path.display()));
 
-    let builder = &mut flatbuffers::FlatBufferBuilder::with_capacity(1024);
-    let hd2 = headers.pop().unwrap();
-    let hd1 = headers.pop().unwrap();
-    drop(headers);
+    let host = url.host_str().expect(url_arg).to_string();
+    let sub = "flatcollect";
+    let index_js = format!("packages/{}/dist/index.js", sub);
+    let index_bg = format!("packages/{}/dist/index_bg.wasm", sub);
 
-    let bytes = {
-        let origin_key = builder.create_string("origin");
-        let origin = builder.create_string(origin);
-        let origin = Pair::create(
-            builder,
-            &PairArgs {
-                key: Some(origin_key),
-                value: Some(origin),
-            },
-        );
-        let context = Some(builder.create_vector(&[origin]));
+    if Some(&index_js).is_none() {
+        return (String::new(), vec![]);
+    }
+
+    let uuid = String::new(); //uuid::Uuid::new_v4().to_string();
+    let (bytes, head) = {
+        let mut builder = flatbuffers::FlatBufferBuilder::with_capacity(1024);
+        let context = {
+            let path = builder.create_string(&site_dir);
+            let uuid = builder.create_string(&uuid);
+            let index = builder.create_string(&index_js);
+            let origin = builder.create_string(origin);
+            // let context_arr = [origin, path, uuid, index];
+            // builder.create_vector(&context_arr)
+            query::Context::create(
+                &mut builder,
+                &ContextArgs {
+                    origin: Some(origin),
+                    index: Some(index),
+                    uuid: Some(uuid),
+                    path: Some(path),
+                },
+            )
+        };
         let request = {
             // let method = builder.create_string(method);
             let url = Some(builder.create_string(url_arg));
             let body = body.map(|s| builder.create_vector(s.as_bytes()));
 
-            let items = hd1.as_object().unwrap();
+            let items = headers_req.as_object().unwrap();
             let items: Vec<_> = items
                 .iter()
                 .filter(|(k, val)| val.is_string())
                 .map(|(k, val)| {
                     let key = Some(builder.create_string(k));
                     let value = Some(builder.create_string(val.as_str().unwrap()));
-                    Pair::create(builder, &PairArgs { key, value })
+                    Pair::create(&mut builder, &PairArgs { key, value })
                 })
                 .collect();
             let headers = builder.create_vector(&items);
 
-            fn as_method(one: &str) -> query::Method {
-                match one {
+            fn into_method(what: &str) -> query::Method {
+                match what {
                     "Method_" => query::Method::Method_,
                     "Get" => query::Method::Get,
                     "Head" => query::Method::Head,
@@ -346,9 +366,9 @@ pub fn sample(
                 }
             }
             query::Request::create(
-                builder,
+                &mut builder,
                 &RequestArgs {
-                    method: as_method(method), //query::Method::Get,
+                    method: into_method(method), //query::Method::Get,
                     url,
                     body,
                     headers: Some(headers),
@@ -358,55 +378,89 @@ pub fn sample(
         // Some(pack_request( builder,  method, url, body, &headers[0],));
         let response = {
             let content = Some(builder.create_vector(content.as_bytes()));
-            let contenttype = Some(builder.create_string(ctype));
+            let content_type = Some(builder.create_string(ctype));
 
-            let items = hd2.as_object().unwrap();
+            let items = headers_rsp.as_object().unwrap();
             let items: Vec<_> = items
                 .iter()
                 .filter(|(k, val)| val.is_string())
                 .map(|(k, val)| {
                     let key = Some(builder.create_string(k));
                     let value = Some(builder.create_string(val.as_str().unwrap()));
-                    Pair::create(builder, &PairArgs { key, value })
+                    Pair::create(&mut builder, &PairArgs { key, value })
                 })
                 .collect();
             let headers = Some(builder.create_vector(&items));
 
             query::Response::create(
-                builder,
+                &mut builder,
                 &ResponseArgs {
                     status: status as i16,
                     content,
-                    contenttype,
+                    type_: content_type,
                     headers,
                 },
             )
         };
         let query = query::Query::create(
-            builder,
+            &mut builder,
             &QueryArgs {
-                context,
+                context: Some(context),
                 request: Some(request),
                 response: Some(response),
             },
         );
 
         builder.finish(query, None);
-        builder.finished_data()
+        builder.collapse() // builder.finished_data()
     };
 
-    let query = flatbuffers::root::<query::Query>(bytes).unwrap();
-    dbg!(query);
+    tauri::async_runtime::spawn({
+        let bytes = bytes[head..].to_vec();
+        async move {
+            let url_analyzer = "http:/u8080.de/v1/an";
+            // let new_post = Post {
+            //     id: None,
+            //     title: "Reqwest.rs".into(),
+            //     body: "https://docs.rs/reqwest".into(),
+            //     user_id: 1,
+            // };
+            let request = reqwest::Client::new().post(url_analyzer);
+            let request = request.body(bytes);
+            // request;
+            let response = request.send().await;
+            let bytes = match response {
+                Ok(res) => res.bytes().await,
+                Err(err) => {
+                    dbg!((err, url_analyzer,));
+                    return;
+                }
+            };
+            // .and_then(async |rsp| );
+            // .bytes() //.json::<>()
+            // .await
+            // .unwrap();
 
-    let host = url.host_str().expect(url_arg).to_string();
-    let uuid = uuid::Uuid::new_v4().to_string();
-    let index = "packages/flatcollect/dist/index.js".into();
-    let index_bg = "packages/flatcollect/dist/index_bg.wasm".into();
-    let js = template::Forward {
+            println!("{:#?}", bytes);
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            // window.emit("jedi", Some(js)).expect("emit-jedi");
+            dbg!("sample ___ emit-jedi");
+        }
+    });
+
+    return ("console.log".to_string(), vec![]);
+
+    // let query = flatbuffers::root::<query::Query>(bytes).unwrap();
+    // dbg!(query);
+
+    // let host = url.host_str().expect(url_arg).to_string();
+    // let uuid = uuid::Uuid::new_v4().to_string();
+    // let index = "packages/flatcollect/dist/index.js".into();
+    let js_script = scripts::Forward {
         host,
-        uuid,
+        uuid: uuid,
         site_dir,
-        index,
+        index: index_js,
         index_bg,
     }
     .render_default(&Default::default())
@@ -415,7 +469,7 @@ pub fn sample(
     // tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     // window.emit("jedi", Some(js)).expect("emit-jedi");
 
-    return (js, bytes.into());
+    return (js_script, bytes.into());
     // return (String::new(), vec![]); //json!({"code":0,"hint":"invalid args"});
 }
 
@@ -443,10 +497,11 @@ pub fn _consume_0(
 
     let url_arg = url;
     let url = if url.starts_with("/") {
-        let b = Url::parse(origin).ok();
-        Url::options().base_url(b.as_ref()).parse(url).expect(url)
+        let base = Url::parse(origin).ok();
+        let opt = Url::options().base_url(base.as_ref());
+        opt.parse(url_arg).expect(url_arg)
     } else {
-        Url::parse(url).expect(url)
+        Url::parse(url_arg).expect(url_arg)
     };
     let url_path = Path::new(url.path());
     let hash_index = format!("{}{}", url.host_str().unwrap(), url.path());
@@ -533,7 +588,7 @@ pub fn _consume_0(
                 let keyword = keyword.unwrap_or("").to_string();
                 let hash_index = hash_index.clone();
                 tauri::async_runtime::spawn(async move {
-                    let js = template::SearchQcc {
+                    let js = scripts::SearchQcc {
                         uuid: uuid::Uuid::new_v4().to_string(),
                         keyword,
                         hash_index,
@@ -592,7 +647,7 @@ pub fn _consume_0(
         if re.is_match(url_arg) {
             let window = window.clone();
             tauri::async_runtime::spawn(async move {
-                let js = template::SearchBaidu {
+                let js = scripts::SearchBaidu {
                     hash_index,
                     uuid: uuid::Uuid::new_v4().to_string(),
                 }
@@ -651,7 +706,7 @@ fn numbs_init(dir: &Path) -> HashSet<i32> {
 }
 
 pub fn on_page_load(_: &str, window: &tauri::Window) {
-    let js = template::AjaxHook
+    let js = scripts::AjaxHook
         .render_default(&Default::default())
         .unwrap()
         .into_string();
@@ -659,7 +714,7 @@ pub fn on_page_load(_: &str, window: &tauri::Window) {
         dbg!(format!("template:Hook eval: {err}"));
     }
 
-    let js = template::PageOnLoad
+    let js = scripts::PageOnLoad
         .render_default(&Default::default())
         .unwrap()
         .into_string();
@@ -671,22 +726,22 @@ pub fn on_page_load(_: &str, window: &tauri::Window) {
     // if let Some(Value::String(url)) = request.get("url") {
     //     match url.as_str() {
     //         "asset://localhost/hook" => {
-    //             // let s = template::AjaxHook
+    //             // let s = scripts::AjaxHook
     //             //     .render_default(&Default::default())
     //             //     .unwrap()
     //             //     .into_string();
     //             // if let Err(err) = window.eval(&s) {
-    //             //     eprint!("template::AjaxHook eval: {err}")
+    //             //     eprint!("scripts::AjaxHook eval: {err}")
     //             // }
     //             return vec![format!("console.log('{url}')")];
     //         }
     //         _ => {
-    //             let s = template::AjaxHook {}
+    //             let s = scripts::AjaxHook {}
     //                 .render_default(&Default::default())
     //                 .unwrap()
     //                 .into_string();
     //             if let Err(err) = window.eval(&s) {
-    //                 eprint!("template::AjaxHook eval: {err}")
+    //                 eprint!("scripts::AjaxHook eval: {err}")
     //             }
     //             return vec![format!("console.log('trigger {url}')")];
     //         }

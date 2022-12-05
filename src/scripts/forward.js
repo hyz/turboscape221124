@@ -17,8 +17,9 @@
 		const blob_wasm = new Blob([src_wasm], { type: "application/wasm" });
 		const url_wasm = URL.createObjectURL(blob_wasm);
 
+		window.__page_.uuid = uuid;
 		await init(url_wasm);
-		console.log(`___ ${host} ...`, index_js, bytes);
+		console.log(`___ ${host} ${uuid} ...`, index_js, bytes);
 		await collect(bytes);
 	})(bytes)
 		.then(console.log)

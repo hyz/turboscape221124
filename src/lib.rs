@@ -18,8 +18,9 @@ use tauri::{Manager, State};
 mod commands;
 mod menu;
 mod monster_generated;
+mod plugs;
 mod protocols;
-mod template;
+mod scripts;
 
 #[derive(Default)]
 pub struct Database(pub Arc<Mutex<HashMap<String, HashSet<i32>>>>);
@@ -103,6 +104,7 @@ pub fn build() -> std::result::Result<tauri::App, tauri::Error> {
         })
         .menu(menu::build_menu())
         .on_menu_event(menu::menu_event_handler)
+        .plugin(plugs::reqwest())
         .build(tauri::generate_context!("./tauri.conf.json"))
 }
 

@@ -17,12 +17,19 @@ table Request {
 table Response {
   status:short;
   content:[ubyte];
-  contenttype:string;
+  type:string;
   headers:[Pair];
 }
 
+table Context {
+  path:string;
+  uuid:string;
+  index:string;
+  origin:string;
+}
+
 table Query {
-  context:[Pair];
+  context: Context;
   request: Request;
   response: Response;
 }
