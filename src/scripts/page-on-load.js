@@ -49,10 +49,11 @@
 			let origin = document.location.href;
 			return { origin, method, url, body, status, content: response, ctype, length, headers: [req, rsp] };
 		})(slims(r0));
-		invoke("sample", props).then(([jsf, bytes]) => {
-			if (jsf && jsf.length > 0) {
-				// if (uuid && uuid.length > 0) { window.__page_[uuid] = {}; }
-				console.log("sample,___", jsf, bytes.length, eval(jsf)(bytes));
+		invoke("sample", props).then((vec) => {
+			for ([sf, arg] of vec) {
+				if (sf && sf.length > 0) {
+					console.log("sample,___", sf, arg.length, eval(sf)(arg));
+				}
 			}
 		});
 		console.log("___slimed...", document.location.href, r0); //,r0

@@ -156,9 +156,9 @@ fn pack_request<'a>(
         .iter()
         .filter(|(k, val)| val.is_string())
         .map(|(k, val)| {
-            let key = Some(builder.create_string(k));
+            let name = Some(builder.create_string(k));
             let value = Some(builder.create_string(val.as_str().unwrap()));
-            Pair::create(builder, &PairArgs { key, value })
+            query::Header::create(builder, &query::HeaderArgs { name, value })
         })
         .collect();
     let headers = builder.create_vector(&items);
@@ -188,9 +188,9 @@ fn pack_response<'a>(
         .iter()
         .filter(|(k, val)| val.is_string())
         .map(|(k, val)| {
-            let key = Some(builder.create_string(k));
+            let name = Some(builder.create_string(k));
             let value = Some(builder.create_string(val.as_str().unwrap()));
-            Pair::create(builder, &PairArgs { key, value })
+            query::Header::create(builder, &query::HeaderArgs { name, value })
         })
         .collect();
     let headers = Some(builder.create_vector(&items));
@@ -217,14 +217,14 @@ pub fn sample(
     content: &str,
     ctype: &str,
     mut headers: Vec<serde_json::Value>,
-) -> (String, Vec<u8>) {
+) -> Vec<(String, Vec<u8>)> {
     assert!(headers.len() == 2);
 
     //invoke('consume', { url: config.url, status, response }).then(console.log);
     //await __TAURI__.tauri.invoke('consume',{response:'hello world',url:'/path/to',status:200})
     //JSON.parse(temp1.response, (k, v) => { if (typeof v === 'string') return v.replace('<em>', '').replace('</em>', ''); return v })
     if !true || url.len() < 1 || ctype.len() < 1 || content.len() < 10 || status != 200 {
-        return (String::new(), vec![]); //json!({"err":-1,"hint":"invalid args"});
+        return vec![]; //json!({"err":-1,"hint":"invalid args"});
     }
     // let headers = headers.as_array().expect("headers:[]");
 
@@ -314,7 +314,7 @@ pub fn sample(
     let index_bg = format!("packages/{}/dist/index_bg.wasm", sub);
 
     if Some(&index_js).is_none() {
-        return (String::new(), vec![]);
+        return vec![];
     }
 
     let uuid = String::new(); //uuid::Uuid::new_v4().to_string();
@@ -347,9 +347,9 @@ pub fn sample(
                 .iter()
                 .filter(|(k, val)| val.is_string())
                 .map(|(k, val)| {
-                    let key = Some(builder.create_string(k));
+                    let name = Some(builder.create_string(k));
                     let value = Some(builder.create_string(val.as_str().unwrap()));
-                    Pair::create(&mut builder, &PairArgs { key, value })
+                    query::Header::create(&mut builder, &query::HeaderArgs { name, value })
                 })
                 .collect();
             let headers = builder.create_vector(&items);
@@ -385,9 +385,9 @@ pub fn sample(
                 .iter()
                 .filter(|(k, val)| val.is_string())
                 .map(|(k, val)| {
-                    let key = Some(builder.create_string(k));
+                    let name = Some(builder.create_string(k));
                     let value = Some(builder.create_string(val.as_str().unwrap()));
-                    Pair::create(&mut builder, &PairArgs { key, value })
+                    query::Header::create(&mut builder, &query::HeaderArgs { name, value })
                 })
                 .collect();
             let headers = Some(builder.create_vector(&items));
@@ -419,44 +419,44 @@ pub fn sample(
         let bytes = bytes[head..].to_vec();
         async move {
             let url_analyzer = "http:/u8080.de/v1/an";
-            // let new_post = Post {
-            //     id: None,
-            //     title: "Reqwest.rs".into(),
-            //     body: "https://docs.rs/reqwest".into(),
-            //     user_id: 1,
-            // };
-            let request = reqwest::Client::new().post(url_analyzer);
-            let request = request.body(bytes);
-            // request;
+
+            let request = reqwest::Client::new().post(url_analyzer).body(bytes);
             let response = request.send().await;
             let bytes = match response {
                 Ok(res) => res.bytes().await,
                 Err(err) => {
                     dbg!((err, url_analyzer,));
-                    return ("console.log".to_string(), vec![]);
+                    return vec![];
                 }
             };
-            // .and_then(async |rsp| );
             // .bytes() //.json::<>()
             // .await
             // .unwrap();
-            println!("{:#?}", bytes);
+            // println!("{:#?}", bytes);
             if let Ok(bytes) = bytes {
-                let eva = flatbuffers::root::<query::Evals>(&bytes).unwrap();
-                dbg!(eva);
-                let js = eva.script().unwrap();
-                let arg = eva.input().unwrap();
-                return (js.into(), arg.bytes().to_vec());
-                // window.emit(event, payload)
+                let pairs = flatbuffers::root::<query::Pairs>(&bytes).unwrap();
+                // dbg!(eva);
+                let vec: Vec<_> = pairs
+                    .vec()
+                    .unwrap()
+                    .iter()
+                    .map(|p| {
+                        let js = p.first().unwrap();
+                        let arg = p.second().unwrap();
+                        (js.to_string(), arg.bytes().to_vec())
+                    })
+                    .collect();
+                return vec; // ![(js.into(), arg.bytes().to_vec())];
+                            // window.emit(event, payload)
             }
 
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             // window.emit("jedi", Some(js)).expect("emit-jedi");
             dbg!("sample ___ emit-jedi");
 
-            return ("console.log".to_string(), vec![]);
+            return vec![];
         }
-    }); // return ("console.log".to_string(), vec![]);
+    });
     return resp;
     // let query = flatbuffers::root::<query::Query>(bytes).unwrap();
     // dbg!(query);

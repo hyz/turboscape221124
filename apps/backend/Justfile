@@ -6,6 +6,9 @@ usage:
 	basic-http-server .
 	echo "open http://4000.local/dist"
 
+flatc:
+	flatc --rust -o src/protocols src/protocols/query.fbs
+
 webpack name mode='production':
 	yarn webpack build --config-name {{name}} --mode {{mode}}
 

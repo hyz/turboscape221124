@@ -135,8 +135,8 @@ impl<'a> flatbuffers::Follow<'a> for Pair<'a> {
 }
 
 impl<'a> Pair<'a> {
-  pub const VT_KEY: flatbuffers::VOffsetT = 4;
-  pub const VT_VALUE: flatbuffers::VOffsetT = 6;
+  pub const VT_FIRST: flatbuffers::VOffsetT = 4;
+  pub const VT_SECOND: flatbuffers::VOffsetT = 6;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -148,25 +148,25 @@ impl<'a> Pair<'a> {
     args: &'args PairArgs<'args>
   ) -> flatbuffers::WIPOffset<Pair<'bldr>> {
     let mut builder = PairBuilder::new(_fbb);
-    if let Some(x) = args.value { builder.add_value(x); }
-    if let Some(x) = args.key { builder.add_key(x); }
+    if let Some(x) = args.second { builder.add_second(x); }
+    if let Some(x) = args.first { builder.add_first(x); }
     builder.finish()
   }
 
 
   #[inline]
-  pub fn key(&self) -> Option<&'a str> {
+  pub fn first(&self) -> Option<&'a str> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Pair::VT_KEY, None)}
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Pair::VT_FIRST, None)}
   }
   #[inline]
-  pub fn value(&self) -> Option<&'a str> {
+  pub fn second(&self) -> Option<flatbuffers::Vector<'a, u8>> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Pair::VT_VALUE, None)}
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Pair::VT_SECOND, None)}
   }
 }
 
@@ -177,22 +177,22 @@ impl flatbuffers::Verifiable for Pair<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("key", Self::VT_KEY, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("value", Self::VT_VALUE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("first", Self::VT_FIRST, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("second", Self::VT_SECOND, false)?
      .finish();
     Ok(())
   }
 }
 pub struct PairArgs<'a> {
-    pub key: Option<flatbuffers::WIPOffset<&'a str>>,
-    pub value: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub first: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub second: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
 }
 impl<'a> Default for PairArgs<'a> {
   #[inline]
   fn default() -> Self {
     PairArgs {
-      key: None,
-      value: None,
+      first: None,
+      second: None,
     }
   }
 }
@@ -203,12 +203,12 @@ pub struct PairBuilder<'a: 'b, 'b> {
 }
 impl<'a: 'b, 'b> PairBuilder<'a, 'b> {
   #[inline]
-  pub fn add_key(&mut self, key: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Pair::VT_KEY, key);
+  pub fn add_first(&mut self, first: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Pair::VT_FIRST, first);
   }
   #[inline]
-  pub fn add_value(&mut self, value: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Pair::VT_VALUE, value);
+  pub fn add_second(&mut self, second: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Pair::VT_SECOND, second);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PairBuilder<'a, 'b> {
@@ -228,7 +228,121 @@ impl<'a: 'b, 'b> PairBuilder<'a, 'b> {
 impl core::fmt::Debug for Pair<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let mut ds = f.debug_struct("Pair");
-      ds.field("key", &self.key());
+      ds.field("first", &self.first());
+      ds.field("second", &self.second());
+      ds.finish()
+  }
+}
+pub enum HeaderOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct Header<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for Header<'a> {
+  type Inner = Header<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> Header<'a> {
+  pub const VT_NAME: flatbuffers::VOffsetT = 4;
+  pub const VT_VALUE: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    Header { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args HeaderArgs<'args>
+  ) -> flatbuffers::WIPOffset<Header<'bldr>> {
+    let mut builder = HeaderBuilder::new(_fbb);
+    if let Some(x) = args.value { builder.add_value(x); }
+    if let Some(x) = args.name { builder.add_name(x); }
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn name(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Header::VT_NAME, None)}
+  }
+  #[inline]
+  pub fn value(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Header::VT_VALUE, None)}
+  }
+}
+
+impl flatbuffers::Verifiable for Header<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("name", Self::VT_NAME, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("value", Self::VT_VALUE, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct HeaderArgs<'a> {
+    pub name: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub value: Option<flatbuffers::WIPOffset<&'a str>>,
+}
+impl<'a> Default for HeaderArgs<'a> {
+  #[inline]
+  fn default() -> Self {
+    HeaderArgs {
+      name: None,
+      value: None,
+    }
+  }
+}
+
+pub struct HeaderBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> HeaderBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Header::VT_NAME, name);
+  }
+  #[inline]
+  pub fn add_value(&mut self, value: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Header::VT_VALUE, value);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> HeaderBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    HeaderBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<Header<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for Header<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("Header");
+      ds.field("name", &self.name());
       ds.field("value", &self.value());
       ds.finish()
   }
@@ -294,11 +408,11 @@ impl<'a> Request<'a> {
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Request::VT_BODY, None)}
   }
   #[inline]
-  pub fn headers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair<'a>>>> {
+  pub fn headers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Header<'a>>>> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair>>>>(Request::VT_HEADERS, None)}
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Header>>>>(Request::VT_HEADERS, None)}
   }
 }
 
@@ -312,7 +426,7 @@ impl flatbuffers::Verifiable for Request<'_> {
      .visit_field::<Method>("method", Self::VT_METHOD, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>("url", Self::VT_URL, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("body", Self::VT_BODY, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Pair>>>>("headers", Self::VT_HEADERS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Header>>>>("headers", Self::VT_HEADERS, false)?
      .finish();
     Ok(())
   }
@@ -321,7 +435,7 @@ pub struct RequestArgs<'a> {
     pub method: Method,
     pub url: Option<flatbuffers::WIPOffset<&'a str>>,
     pub body: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
-    pub headers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair<'a>>>>>,
+    pub headers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Header<'a>>>>>,
 }
 impl<'a> Default for RequestArgs<'a> {
   #[inline]
@@ -353,7 +467,7 @@ impl<'a: 'b, 'b> RequestBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Request::VT_BODY, body);
   }
   #[inline]
-  pub fn add_headers(&mut self, headers: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Pair<'b >>>>) {
+  pub fn add_headers(&mut self, headers: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Header<'b >>>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Request::VT_HEADERS, headers);
   }
   #[inline]
@@ -442,11 +556,11 @@ impl<'a> Response<'a> {
     unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Response::VT_TYPE_, None)}
   }
   #[inline]
-  pub fn headers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair<'a>>>> {
+  pub fn headers(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Header<'a>>>> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair>>>>(Response::VT_HEADERS, None)}
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Header>>>>(Response::VT_HEADERS, None)}
   }
 }
 
@@ -460,7 +574,7 @@ impl flatbuffers::Verifiable for Response<'_> {
      .visit_field::<i16>("status", Self::VT_STATUS, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("content", Self::VT_CONTENT, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>("type_", Self::VT_TYPE_, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Pair>>>>("headers", Self::VT_HEADERS, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Header>>>>("headers", Self::VT_HEADERS, false)?
      .finish();
     Ok(())
   }
@@ -469,7 +583,7 @@ pub struct ResponseArgs<'a> {
     pub status: i16,
     pub content: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
     pub type_: Option<flatbuffers::WIPOffset<&'a str>>,
-    pub headers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair<'a>>>>>,
+    pub headers: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Header<'a>>>>>,
 }
 impl<'a> Default for ResponseArgs<'a> {
   #[inline]
@@ -501,7 +615,7 @@ impl<'a: 'b, 'b> ResponseBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Response::VT_TYPE_, type_);
   }
   #[inline]
-  pub fn add_headers(&mut self, headers: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Pair<'b >>>>) {
+  pub fn add_headers(&mut self, headers: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Header<'b >>>>) {
     self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Response::VT_HEADERS, headers);
   }
   #[inline]
@@ -808,117 +922,100 @@ impl core::fmt::Debug for Query<'_> {
       ds.finish()
   }
 }
-pub enum EvalsOffset {}
+pub enum PairsOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct Evals<'a> {
+pub struct Pairs<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Evals<'a> {
-  type Inner = Evals<'a>;
+impl<'a> flatbuffers::Follow<'a> for Pairs<'a> {
+  type Inner = Pairs<'a>;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
-impl<'a> Evals<'a> {
-  pub const VT_SCRIPT: flatbuffers::VOffsetT = 4;
-  pub const VT_INPUT: flatbuffers::VOffsetT = 6;
+impl<'a> Pairs<'a> {
+  pub const VT_VEC: flatbuffers::VOffsetT = 4;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Evals { _tab: table }
+    Pairs { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args EvalsArgs<'args>
-  ) -> flatbuffers::WIPOffset<Evals<'bldr>> {
-    let mut builder = EvalsBuilder::new(_fbb);
-    if let Some(x) = args.input { builder.add_input(x); }
-    if let Some(x) = args.script { builder.add_script(x); }
+    args: &'args PairsArgs<'args>
+  ) -> flatbuffers::WIPOffset<Pairs<'bldr>> {
+    let mut builder = PairsBuilder::new(_fbb);
+    if let Some(x) = args.vec { builder.add_vec(x); }
     builder.finish()
   }
 
 
   #[inline]
-  pub fn script(&self) -> Option<&'a str> {
+  pub fn vec(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair<'a>>>> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Evals::VT_SCRIPT, None)}
-  }
-  #[inline]
-  pub fn input(&self) -> Option<flatbuffers::Vector<'a, u8>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, u8>>>(Evals::VT_INPUT, None)}
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair>>>>(Pairs::VT_VEC, None)}
   }
 }
 
-impl flatbuffers::Verifiable for Evals<'_> {
+impl flatbuffers::Verifiable for Pairs<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("script", Self::VT_SCRIPT, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, u8>>>("input", Self::VT_INPUT, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Pair>>>>("vec", Self::VT_VEC, false)?
      .finish();
     Ok(())
   }
 }
-pub struct EvalsArgs<'a> {
-    pub script: Option<flatbuffers::WIPOffset<&'a str>>,
-    pub input: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, u8>>>,
+pub struct PairsArgs<'a> {
+    pub vec: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pair<'a>>>>>,
 }
-impl<'a> Default for EvalsArgs<'a> {
+impl<'a> Default for PairsArgs<'a> {
   #[inline]
   fn default() -> Self {
-    EvalsArgs {
-      script: None,
-      input: None,
+    PairsArgs {
+      vec: None,
     }
   }
 }
 
-pub struct EvalsBuilder<'a: 'b, 'b> {
+pub struct PairsBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> EvalsBuilder<'a, 'b> {
+impl<'a: 'b, 'b> PairsBuilder<'a, 'b> {
   #[inline]
-  pub fn add_script(&mut self, script: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Evals::VT_SCRIPT, script);
+  pub fn add_vec(&mut self, vec: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Pair<'b >>>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Pairs::VT_VEC, vec);
   }
   #[inline]
-  pub fn add_input(&mut self, input: flatbuffers::WIPOffset<flatbuffers::Vector<'b , u8>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Evals::VT_INPUT, input);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> EvalsBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PairsBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    EvalsBuilder {
+    PairsBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Evals<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<Pairs<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for Evals<'_> {
+impl core::fmt::Debug for Pairs<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Evals");
-      ds.field("script", &self.script());
-      ds.field("input", &self.input());
+    let mut ds = f.debug_struct("Pairs");
+      ds.field("vec", &self.vec());
       ds.finish()
   }
 }

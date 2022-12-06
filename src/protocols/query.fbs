@@ -3,7 +3,11 @@ namespace query;
 enum Method:byte { Method_=0, Get = 1, Head, Post, Put, Delete }
 
 table Pair {
-  key:string;
+  first:string;
+  second:[ubyte];
+}
+table Header {
+  name:string;
   value:string;
 }
 
@@ -11,14 +15,14 @@ table Request {
   method: Method;
   url:string;
   body:[ubyte];
-  headers:[Pair];
+  headers:[Header];
 }
 
 table Response {
   status:short;
   content:[ubyte];
   type:string;
-  headers:[Pair];
+  headers:[Header];
 }
 
 table Context {
@@ -34,10 +38,8 @@ table Query {
   response: Response;
 }
 
-table Evals {
-  script:string;
-  input:[ubyte];
+table Pairs {
+  vec:[Pair];
 }
-
 root_type Query;
 
