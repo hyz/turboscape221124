@@ -21,6 +21,7 @@ mod monster_generated;
 mod plugs;
 mod protocols;
 mod scripts;
+mod watch;
 
 #[derive(Default)]
 pub struct Database(pub Arc<Mutex<HashMap<String, HashSet<i32>>>>);

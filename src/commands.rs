@@ -418,7 +418,7 @@ pub fn sample(
     let resp = tauri::async_runtime::block_on({
         let bytes = bytes[head..].to_vec();
         async move {
-            let url_analyzer = "http:/u8080.de/v1/an";
+            let url_analyzer = "http://u8080.de/v1/an";
 
             let request = reqwest::Client::new().post(url_analyzer).body(bytes);
             let response = request.send().await;
@@ -429,29 +429,30 @@ pub fn sample(
                     return vec![];
                 }
             };
-            // .bytes() //.json::<>()
-            // .await
-            // .unwrap();
-            // println!("{:#?}", bytes);
-            if let Ok(bytes) = bytes {
-                let pairs = flatbuffers::root::<query::Pairs>(&bytes).unwrap();
-                // dbg!(eva);
-                let vec: Vec<_> = pairs
-                    .vec()
-                    .unwrap()
-                    .iter()
-                    .map(|p| {
-                        let js = p.first().unwrap();
-                        let arg = p.second().unwrap();
-                        (js.to_string(), arg.bytes().to_vec())
-                    })
-                    .collect();
-                return vec; // ![(js.into(), arg.bytes().to_vec())];
-                            // window.emit(event, payload)
+            // .bytes().await //.json::<>()
+
+            if let Ok(bytes) = bytes.as_ref() {
+                dbg!((bytes.len(),));
+                return match flatbuffers::root::<query::Pairs>(bytes) {
+                    Ok(pairs) => {
+                        let vec_iter = pairs.vec().unwrap().iter();
+                        vec_iter
+                            .map(|p| {
+                                let js = p.first().unwrap();
+                                let arg = p.second().unwrap();
+                                (js.to_string(), arg.bytes().to_vec())
+                                // window.emit("jedi", Some(js)).expect("emit-jedi");
+                            })
+                            .collect::<Vec<_>>()
+                    }
+                    Err(err) => {
+                        dbg!(err);
+                        vec![]
+                    }
+                };
             }
 
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-            // window.emit("jedi", Some(js)).expect("emit-jedi");
             dbg!("sample ___ emit-jedi");
 
             return vec![];
@@ -713,7 +714,8 @@ fn numbs_init(dir: &Path) -> HashSet<i32> {
     index_set
 }
 
-pub fn on_page_load(_: &str, window: &tauri::Window) {
+pub fn on_page_load(url: &str, window: &tauri::Window) {
+    dbg!((url,));
     let js = scripts::AjaxHook
         .render_default(&Default::default())
         .unwrap()
