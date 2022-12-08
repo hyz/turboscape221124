@@ -1,8 +1,8 @@
 {
 	"$schema": "./core/config-schema/schema.json",
 	"build": {
-		"distDir": "public/",
-		"devPath": "public/",
+        "distDir": "http://u3000.de/",
+        "devPath": "http://u3000.de/",
 		"beforeDevCommand": "",
 		"beforeBuildCommand": "",
 		"withGlobalTauri": true
