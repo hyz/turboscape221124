@@ -1,3 +1,4 @@
+pub mod monster_generated;
 pub mod query_generated;
 
 use std::{

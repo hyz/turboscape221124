@@ -1,72 +1,97 @@
+use chrono::offset::Local;
+use futures::stream::{SplitSink, SplitStream};
 use std::env;
+use std::fmt::Debug;
+use tauri::{AppHandle, EventLoopMessage, Manager, Wry};
+use tokio::sync::broadcast;
 
 use futures_util::{future, pin_mut, SinkExt, StreamExt};
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Url};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{client_async, connect_async, WebSocketStream};
 
-pub(crate) async fn integration_test() {
-    let addr = dotenv::var("URL_WS_SRV").unwrap(); //format!("ws://{addr}/websocket");
-    tracing::debug!("URL_WS_SRV {}", addr);
+// let addr = dotenv::var("URL_WS_SRV").unwrap(); //format!("ws://{addr}/websocket");
+pub(crate) async fn ws_chat_test(
+    ws_url: Url,
+    sub_rx: broadcast::Receiver<String>,
+    _app: AppHandle<Wry>, //fresh: futures_channel::mpsc::UnboundedSender<Fresh>,
+) {
+    let url = ws_url.as_ref();
+    #[cfg(debug_assertions)]
+    if let Some(_win) = _app.get_window("main") {
+        _win.emit("jedi", Some("console.log('jedi emit-from ws_chat_test')"))
+            .unwrap();
+        _app.run_on_main_thread(|| {}).unwrap();
+    }
+    // let ws_url = match url::Url::parse(addr.as_ref()) {
+    //     Err(err) => {
+    //         tracing::error!("Url::parse {}: {:?}", addr.as_ref(), err);
+    //         return;
+    //     }
+    //     Ok(url) => url,
+    // };
 
-    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    let today = Local::now().format("%Y%h%d.%H %FT%T");
+    tracing::debug!("{today} {} ", url);
 
-    let (socket, _response) = tokio_tungstenite::connect_async(addr).await.unwrap();
-    tracing::debug!("connect_async:response: {:?}", _response);
+    let (mut sink, stream) = match tokio_tungstenite::connect_async(url).await {
+        Err(err) => {
+            tracing::error!("connect_async {}: {:?}", url, err);
+            return;
+        }
+        Ok((socket, _response)) => {
+            assert_eq!(_response.status(), StatusCode::SWITCHING_PROTOCOLS);
+            tracing::debug!("connect_async:response: {:?}", _response);
+            socket.split()
+        }
+    };
 
-    let (mut sink, stream) = socket.split();
-
-    sink.send(Message::Text("(test)".to_string()))
-        .await
-        .unwrap();
+    let name = Local::now().format("___%y%h%d.%H%M");
+    sink.send(Message::Text(name.to_string())).await.unwrap();
 
     let (stdin_tx, stdin_rx) = futures_channel::mpsc::unbounded();
     // tokio::spawn(read_stdin(stdin_tx));
 
     let stdin_to_ws = stdin_rx.map(Ok).forward(sink);
-    let ws_to_stdout = {
-        stream.for_each(|message| async {
-            if let Ok(Message::Text(text)) = message {
-                tracing::debug!("integration_test rcpt: {}", text);
-                tokio::io::stdout()
-                    .write_all(text.as_bytes())
-                    .await
-                    .unwrap();
-                tokio::io::stdout().write(b"\n").await.unwrap();
-                _ = tokio::io::stdout().flush().await;
+    let ws_to_stdout = stream.for_each(|message| async {
+        //     tokio::io::stdout().write_all(text.as_bytes()).await.unwrap();
+        //     tokio::io::stdout().write(b"\n").await.unwrap();
+        //     tokio::io::stdout().flush().await.unwrap();
+        match message {
+            Err(errmsg) => {
+                tracing::error!("rcpt Err: {errmsg:?}");
             }
-            // let data = message.unwrap();//.into_data();
-            // tokio::io::stdout().write_all(&data).await.unwrap();
-            // tokio::io::stdout().write(b"\n").await.unwrap();
-            // _ = tokio::io::stdout().flush().await;
-        })
-    };
+            Ok(Message::Text(text)) => {
+                tracing::debug!("rcpt Message::Text: {text}");
+            }
+            Ok(message) => {
+                tracing::debug!("rcpt Message::: {message:?}");
+            }
+        }
+    });
 
     futures::pin_mut!(stdin_to_ws, ws_to_stdout);
     futures::future::select(stdin_to_ws, ws_to_stdout).await;
 
-    tracing::debug!("integration_test ___ **End**");
+    tracing::debug!("ws_chat_test ___ **End**");
+    if let Some(_win) = _app.get_window("main") {
+        let url = ws_url; //url.to_string();
+        #[cfg(debug_assertions)]
+        tauri::async_runtime::spawn(async move {
+            use crate::{Trigger, EV_TRIGGER};
+            let today = Local::now().format("%y%h%d.%H%M %FT%T");
+            tracing::debug!("{today} {} {}", _win.label(), url);
 
-    // sink.send(tokio_tungstenite::tungstenite::Message::Text(
-    //     "integration_test".to_owned(),
-    // ))
-    // .await
-    // .unwrap();
+            _win.emit("jedi", Some("console.log('___')")).unwrap();
 
-    // let msg = match stream.next().await.unwrap().unwrap() {
-    //     tokio_tungstenite::tungstenite::Message::Text(msg) => msg,
-    //     other => panic!("expected a text message but got {other:?}"),
-    //     // Message::Text(_) => todo!(),
-    //     // Message::Binary(_) => todo!(),
-    //     // Message::Ping(_) => todo!(),
-    //     // Message::Pong(_) => todo!(),
-    //     // Message::Close(_) => todo!(),
-    //     // Message::Frame(_) => todo!(),
-    // };
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
 
-    // // assert_eq!(msg, "You said: foo");
+            let data = Trigger::WebsocketChat { url };
+            _win.trigger(EV_TRIGGER, serde_json::to_string(&data).ok());
+        });
+    }
 }
 // async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
 //     let mut stdin = tokio::io::stdin();
@@ -82,34 +107,6 @@ pub(crate) async fn integration_test() {
 //     }
 // }
 
-pub async fn ws() {
-    dotenv::dotenv().ok();
-    let server_url = dotenv::var("SERVER_URL").unwrap();
-
-    let url = url::Url::parse(&server_url).unwrap();
-
-    let (stdin_tx, stdin_rx) = futures_channel::mpsc::unbounded();
-    tokio::spawn(read_stdin(stdin_tx));
-
-    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
-    println!("WebSocket handshake has been successfully completed");
-
-    let (write, read) = ws_stream.split();
-
-    let stdin_to_ws = stdin_rx.map(Ok).forward(write);
-    let ws_to_stdout = {
-        read.for_each(|message| async {
-            let data = message.unwrap().into_data();
-            tokio::io::stdout().write_all(&data).await.unwrap();
-        })
-    };
-
-    pin_mut!(stdin_to_ws, ws_to_stdout);
-    future::select(stdin_to_ws, ws_to_stdout).await;
-}
-
-// Our helper method which will read data from stdin and send it along the
-// sender provided.
 async fn read_stdin(tx: futures_channel::mpsc::UnboundedSender<Message>) {
     let mut stdin = tokio::io::stdin();
     loop {

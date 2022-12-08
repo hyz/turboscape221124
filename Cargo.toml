@@ -35,31 +35,34 @@ exclude = [
 [dependencies]
 thiserror = "1"
 directories = "4"
-tracing = "0.1"
-tracing-subscriber = "0.3"
 once_cell = "1.16"
-url = "2.2"
-urlencoding = "2"
-percent-encoding = "2"
 chrono = { version = "0.4", features = ["serde"] }
-regex = "1.7"
 md5 = "0.7"
 uuid = "1.2"
 dotenv = "0.15"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+futures = "0.3"
 futures-util = "0.3"
 futures-channel = "0.3"
 async-channel = "1.8"
+tokio-tungstenite = "0.18"
 
+url = "2.2"
+urlencoding = "2"
+percent-encoding = "2"
+regex = "1.7"
 serde = "1"
 serde_json = "1"
 serialize-to-javascript = "=0.1" # tauri/Cargo.toml
-bitflags = "1"
+#bitflags = "1"
 flatbuffers = "22.10"
 
 #tauri-macros = { version = "1.1" }
 #tauri-runtime = { path = "./tauri-runtime-0.11.1" }
 #tauri-runtime-wry = { path = "./tauri-runtime-wry-0.11.1" }
-tokio-tungstenite = "0.18"
+
 tauri-egui = { path = "./tauri-egui" }
 
 [dependencies.tauri]
@@ -89,6 +92,7 @@ features = [
     "time",
     "io-std",
     "macros",
+    "signal",
 ]
 [dependencies.reqwest]
 version = "0.11"

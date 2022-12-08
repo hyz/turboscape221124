@@ -785,7 +785,7 @@ pub fn greet(name: &str) -> (String, Vec<u8>) {
 #[tauri::command]
 pub fn monster(/* !!!Error... bytes: &[u8] */) -> (String, Vec<u8>) {
     // let bytes = bytes.as_bytes();
-    use crate::monster_generated::my_game::sample::*;
+    use crate::protocols::monster_generated::my_game::sample::*;
 
     fn check(monster: Monster) {
         // Get access to the root:
